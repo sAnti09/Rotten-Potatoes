@@ -7,7 +7,12 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    sorder = params[:sort]
+    @movies = Movie.order sorder
+    @sort = Hash.new
+    if(!sorder.nil?)
+    	@sort[sorder.to_sym] = "hilite"
+    end    
   end
 
   def new
