@@ -7,12 +7,16 @@ class MoviesController < ApplicationController
   end
 
   def index
-    sorder = params[:sort]
-    @movies = Movie.order sorder
+    order = params[:sort]
     @sort = Hash.new
-    if(!sorder.nil?)
-    	@sort[sorder.to_sym] = "hilite"
-    end    
+    @all_ratings = Movie.all_ratings
+    @filter = params[:ratings].nil? ? Hash[@all_ratings.map {|e| [e,1].flatten}] : params[:ratings]
+
+    if(!order.nil?)
+      @sort[order.to_sym] = "hilite"
+    end
+
+    @movies = Movie.find_all_by_rating(@filter.keys,:order=>order)
   end
 
   def new
