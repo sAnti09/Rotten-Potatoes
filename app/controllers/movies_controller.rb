@@ -3,20 +3,37 @@ class MoviesController < ApplicationController
   def show
     id = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
-    # will render app/views/movies/show.<extension> by default
+                            # will render app/views/movies/show.<extension> by default
   end
 
   def index
-    order = params[:sort]
-    @sort = Hash.new
     @all_ratings = Movie.all_ratings
-    @filter = params[:ratings].nil? ? Hash[@all_ratings.map {|e| [e,1].flatten}] : params[:ratings]
 
-    if(!order.nil?)
-      @sort[order.to_sym] = "hilite"
+    #Manage filter session
+    if(params[:ratings].nil?)
+      if(session[:ratings].nil?)
+        session[:ratings] = Hash[@all_ratings.map { |e| [e, 1].flatten }]
+      end
+    else
+      session[:ratings] = params[:ratings]
+    end
+    @filter = session[:ratings]
+
+    #Manage sort session
+    if(!params[:sort].nil?)
+      session[:sort] = params[:sort]
     end
 
-    @movies = Movie.find_all_by_rating(@filter.keys,:order=>order)
+    @sort = Hash.new
+    if(!session[:sort].nil?)
+      @sort[session[:sort].to_sym] = "hilite"
+    end
+
+    @movies = Movie.find_all_by_rating @filter.keys, :order => session[:sort]
+
+    if(params[:ratings].nil? || (params[:sort].nil? && !session[:sort].nil?))
+      redirect_to movies_path(:ratings => session[:ratings], :sort => session[:sort])
+    end
   end
 
   def new
